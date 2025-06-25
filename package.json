@@ -1,18 +1,22 @@
 {
   "name": "backend",
-  "version": "1.0.50",
+  "version": "1.0.0",
+  "module": "src/index.js",
+  "type": "module",
   "scripts": {
-    "generate": "spacetime generate --lang typescript -b output.wasm --out-dir ./bindings",
-    "dev": "bun run --watch src/index.ts"
+    "bindings:download": "tsx --env-file=.env src/bindings/download.ts",
+    "bindings:generate:global": "spacetime generate --lang typescript -b output.wasm --out-dir ./bindings",
+    "bindings:generate:region-7": "spacetime generate --lang typescript -b output7.wasm --out-dir ./bindings-7",
+    "dev": "tsx watch --env-file=.env src/index.ts"
   },
   "dependencies": {
     "@clockworklabs/spacetimedb-sdk": "^1.2.0",
-    "elysia": "latest",
+    "fastify": "^5.4.0",
     "got": "^14.4.7",
-    "redis": "^5.5.6"
+    "redis": "^5.5.6",
+    "tsx": "^4.20.3"
   },
   "devDependencies": {
-    "bun-types": "latest"
-  },
-  "module": "src/index.js"
+    "@types/node": "^24.0.4"
+  }
 }

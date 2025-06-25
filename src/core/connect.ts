@@ -1,19 +1,13 @@
 import { getActualMainServer } from "./getActualMainServer";
-// import { testGenerateBindings } from "./bindings/generate";
-import { DbConnection, ErrorContext } from "../bindings";
-// import { getIdentityToken } from "./getIdentity";
+import { DbConnection, ErrorContext } from "../../bindings";
 
-const { uri, name } = await getActualMainServer();
-// const { token, identity } = await getIdentityToken(uri);
-// const name = "bitcraft-general";
+let { uri, name } = await getActualMainServer();
+// name = "bitcraft-7";
 
 const token = process.env.TOKEN;
 if (!token) {
   throw new Error("No token");
 }
-
-// it's works!!!
-// testGenerateBindings(uri, name, token, "output.wasm");
 
 export function connect() {
   return new Promise<DbConnection>((resolve) => {

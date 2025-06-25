@@ -1,59 +1,64 @@
-/// <reference no-default-lib="true"/>
+import { writeFile } from "fs/promises";
 
-export function testGenerateBindings(
+export function generateBindings(
   server: string,
   module: string,
   token: string,
   wasmPath: string
 ) {
-  const ws = new WebSocket(`${server}/v1/database/${module}/subscribe`, {
-    protocols: ["v1.json.spacetimedb"],
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(
+      `${server}/v1/database/${module}/subscribe?token=${token}`,
+      ["v1.json.spacetimedb"]
+    );
 
-  ws.onopen = () => {
-    console.log("Connected!");
+    ws.onopen = () => {
+      console.log("Connected!");
 
-    const queryJson = {
-      Subscribe: {
-        query_strings: ["SELECT * FROM st_module"],
-        request_id: 1,
-      },
+      const queryJson = {
+        Subscribe: {
+          query_strings: ["SELECT * FROM st_module"],
+          request_id: 1,
+        },
+      };
+
+      ws.send(JSON.stringify(queryJson));
     };
 
-    ws.send(JSON.stringify(queryJson));
-  };
+    ws.onmessage = async (event) => {
+      const message =
+        typeof event.data === "string"
+          ? event.data
+          : Buffer.from(event.data).toString("utf-8");
 
-  ws.onmessage = (event) => {
-    const message =
-      typeof event.data === "string"
-        ? event.data
-        : Buffer.from(event.data).toString("utf-8");
+      if (message.includes("program_bytes")) {
+        try {
+          const parsed = JSON.parse(message);
+          const insertJsonString =
+            parsed.InitialSubscription.database_update.tables[0].updates[0]
+              .inserts[0];
+          const inner = JSON.parse(insertJsonString);
+          const programBytesHex = inner.program_bytes;
 
-    if (message.includes("program_bytes")) {
-      try {
-        const parsed = JSON.parse(message);
-        const insertJsonString =
-          parsed.InitialSubscription.database_update.tables[0].updates[0]
-            .inserts[0];
-        const inner = JSON.parse(insertJsonString);
-        const programBytesHex = inner.program_bytes;
+          const wasmBytes = Buffer.from(programBytesHex, "hex");
+          await writeFile(wasmPath, wasmBytes);
 
-        const wasmBytes = Buffer.from(programBytesHex, "hex");
-        Bun.write(wasmPath, wasmBytes);
-
-        ws.close();
-      } catch (err) {
-        console.error("Error parsing message:", err);
+          ws.close();
+          resolve(true);
+        } catch (err) {
+          console.error("Error parsing message:", err);
+        }
       }
-    }
-  };
+    };
 
-  ws.onclose = (event) => {
-    console.error("WebSocket closed:", event.code, event.reason);
-  };
+    ws.onclose = (event) => {
+      console.error("WebSocket closed:", event.code, event.reason);
+      reject(false);
+    };
 
-  ws.onerror = (event) => {
-    console.error("WebSocket error:", event);
-  };
+    ws.onerror = (event) => {
+      console.error("WebSocket error:", event);
+      reject(false);
+    };
+  });
 }
