@@ -40,3 +40,8 @@ yarn-error.log*
 **/*.log
 package-lock.json
 **/*.bun
+
+/bindings
+/output.wasm
+/bindings-7
+/output2.wasm
