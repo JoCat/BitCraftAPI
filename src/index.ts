@@ -1,27 +1,27 @@
 import Fastify from "fastify";
 import { connect } from "./core/connect";
 
-// const connection = await connect();
+const connection = await connect();
 const connection7 = await connect("bitcraft-7");
 
 const chillingPlaceEmpireId = 1605n;
 
-// const subscribes = [
-//   `SELECT * FROM empire_player_data_state empire WHERE empire.empire_entity_id = ${chillingPlaceEmpireId}`,
-//   `SELECT username.* FROM player_username_state username JOIN empire_player_data_state empire ON username.entity_id = empire.entity_id WHERE empire.empire_entity_id = ${chillingPlaceEmpireId}`,
-// ];
-
-const subscribes7 = [
-  // "SELECT * FROM skill_desc",
-  "SELECT * FROM player_state WHERE entity_id = 288230376163739357",
-  "SELECT * FROM experience_state WHERE entity_id = 288230376163739357",
+const subscribes = [
+  `SELECT * FROM empire_player_data_state empire WHERE empire.empire_entity_id = ${chillingPlaceEmpireId}`,
+  `SELECT username.* FROM player_username_state username JOIN empire_player_data_state empire ON username.entity_id = empire.entity_id WHERE empire.empire_entity_id = ${chillingPlaceEmpireId}`,
 ];
 
-// connection
-//   .subscriptionBuilder()
-//   .onError(() => console.error("Subscription error"))
-//   .onApplied(() => console.log("Subscribed"))
-//   .subscribe(subscribes);
+const subscribes7 = [
+  "SELECT * FROM skill_desc",
+  `SELECT player.* FROM player_state player JOIN empire_player_data_state empire ON player.entity_id = empire.entity_id WHERE empire.empire_entity_id = ${chillingPlaceEmpireId}`,
+  `SELECT exp.* FROM experience_state exp JOIN empire_player_data_state empire ON exp.entity_id = empire.entity_id WHERE empire.empire_entity_id = ${chillingPlaceEmpireId}`,
+];
+
+connection
+  .subscriptionBuilder()
+  .onError(() => console.error("Subscription error"))
+  .onApplied(() => console.log("Subscribed"))
+  .subscribe(subscribes);
 
 connection7
   .subscriptionBuilder()
@@ -29,42 +29,56 @@ connection7
   .onApplied(() => console.log("Subscribed"))
   .subscribe(subscribes7);
 
-connection7.db.playerState.onInsert((_, playerState) => {
-  console.log("i7 Player state", playerState);
-});
-connection7.db.experienceState.onInsert((_, experienceState) => {
-  console.log("i7 Experience state", experienceState);
-});
-connection7.db.playerState.onUpdate((_, playerState) => {
-  console.log("u7 Player state", playerState);
-});
-connection7.db.experienceState.onUpdate((_, experienceState) => {
-  console.log("u7 Experience state", experienceState);
+const skills: Record<number, any> = {};
+
+connection7.db.skillDesc.onInsert((_, skill) => {
+  skills[skill.id] = {
+    id: skill.id,
+    name: skill.name,
+    description: skill.description,
+    title: skill.title,
+    type: skill.skillCategory.tag,
+    maxLevel: skill.maxLevel,
+  };
 });
 
 const fastify = Fastify();
 
 fastify.get("/skills", async function handler() {
-  return {
-    skills: [...connection7.db.skillDesc.iter()],
-  };
+  return { skills: Object.values(skills) };
 });
 
 fastify.get("/users", async function handler() {
-  console.log([...connection7.db.playerState.iter()]);
-
   return {
-    // count: connection.db.empirePlayerDataState.count(),
-    // users: [...connection.db.empirePlayerDataState.iter()].map((user) => {
-    //   return {
-    //     userId: user.entityId.toString(),
-    //     username: connection.db.playerUsernameState.entityId.find(user.entityId)
-    //       ?.username,
-    //     stats: JsonStringify(
-    //       connection7.db.experienceState.entityId.find(user.entityId) ?? {}
-    //     ),
-    //   };
-    // }),
+    count: connection.db.empirePlayerDataState.count(),
+    users: [...connection.db.empirePlayerDataState.iter()].map((user) => {
+      const userSkills =
+        connection7.db.experienceState.entityId.find(user.entityId)
+          ?.experienceStacks ?? [];
+
+      const playerState = connection7.db.playerState.entityId.find(
+        user.entityId
+      );
+
+      return {
+        userId: user.entityId.toString(),
+        username: connection.db.playerUsernameState.entityId.find(user.entityId)
+          ?.username,
+        timePlayed: playerState?.timePlayed ?? 0,
+        stats: Object.fromEntries(
+          userSkills.map((userSkill) => {
+            const skillData = skills[userSkill.skillId];
+            return [
+              skillData.name,
+              {
+                quantity: userSkill.quantity,
+                level: levelFromExp(userSkill.quantity),
+              },
+            ];
+          })
+        ),
+      };
+    }),
   };
 });
 
@@ -84,4 +98,16 @@ function BigIntReplacer(_key: string, value: any) {
 
 function JsonStringify(data: any) {
   return JSON.parse(JSON.stringify(data, BigIntReplacer));
+}
+
+function levelFromExp(xp: number): number {
+  const r = 1.10572;
+  const lvl = 1 + Math.log(1 + (xp * (r - 1)) / 640.0) / Math.log(r);
+  return Math.floor(lvl);
+}
+
+function ExperienceToLevel(experience: number) {
+  const baseValue = 4082 * 5120;
+  var level = 8 * Math.log2(experience / baseValue) + 80;
+  return level;
 }
