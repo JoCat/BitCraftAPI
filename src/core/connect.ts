@@ -9,7 +9,7 @@ if (!token) {
   throw new Error("No token");
 }
 
-export function connect() {
+export function connect(moduleName = name) {
   return new Promise<DbConnection>((resolve) => {
     return DbConnection.builder()
       .withUri(uri.replace("http", "ws"))

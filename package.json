@@ -4,13 +4,14 @@
   "module": "src/index.js",
   "type": "module",
   "scripts": {
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "debug": "tsx watch --env-file=.env src/debug.ts",
     "bindings:download": "tsx --env-file=.env src/bindings/download.ts",
     "bindings:generate:global": "spacetime generate --lang typescript -b output.wasm --out-dir ./bindings",
-    "bindings:generate:region-7": "spacetime generate --lang typescript -b output7.wasm --out-dir ./bindings-7",
-    "dev": "tsx watch --env-file=.env src/index.ts"
+    "bindings:generate:region-7": "spacetime generate --lang typescript -b output7.wasm --out-dir ./bindings-7"
   },
   "dependencies": {
-    "@clockworklabs/spacetimedb-sdk": "^1.2.0",
+    "@clockworklabs/spacetimedb-sdk": "^1.2.1",
     "fastify": "^5.4.0",
     "got": "^14.4.7",
     "redis": "^5.5.6",
