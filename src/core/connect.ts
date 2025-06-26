@@ -2,7 +2,6 @@ import { getActualMainServer } from "./getActualMainServer";
 import { DbConnection, ErrorContext } from "../../bindings";
 
 let { uri, name } = await getActualMainServer();
-// name = "bitcraft-7";
 
 const token = process.env.TOKEN;
 if (!token) {
@@ -13,7 +12,7 @@ export function connect(moduleName = name) {
   return new Promise<DbConnection>((resolve) => {
     return DbConnection.builder()
       .withUri(uri.replace("http", "ws"))
-      .withModuleName(name)
+      .withModuleName(moduleName)
       .withToken(token)
       .onConnect((connection) => {
         console.log("Connected");
