@@ -6,7 +6,7 @@ interface ConnectInfo {
   name: string;
 }
 
-const MAIN_SERVER_CACHE_KEY = "MAIN_SERVER_DATA";
+const MAIN_SERVER_CACHE_KEY = "BITCRAFT:MAIN_SERVER_DATA";
 
 export async function getActualMainServer(): Promise<ConnectInfo> {
   const cachedConnectInfo = await redisClient.get(MAIN_SERVER_CACHE_KEY);
