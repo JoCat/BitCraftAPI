@@ -29,16 +29,16 @@ connection7
   .onApplied(() => console.log("Subscribed"))
   .subscribe(subscribes7);
 
-connection7.db.playerState.onInsert((playerState) => {
+connection7.db.playerState.onInsert((_, playerState) => {
   console.log("i7 Player state", playerState);
 });
-connection7.db.experienceState.onInsert((experienceState) => {
+connection7.db.experienceState.onInsert((_, experienceState) => {
   console.log("i7 Experience state", experienceState);
 });
-connection7.db.playerState.onUpdate((playerState) => {
+connection7.db.playerState.onUpdate((_, playerState) => {
   console.log("u7 Player state", playerState);
 });
-connection7.db.experienceState.onUpdate((experienceState) => {
+connection7.db.experienceState.onUpdate((_, experienceState) => {
   console.log("u7 Experience state", experienceState);
 });
 
