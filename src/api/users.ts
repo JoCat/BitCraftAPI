@@ -1,5 +1,5 @@
 import { connectionGlobal, connectionRegion7 } from "../connections";
-import { getSkill } from "./skills";
+import { getSkillById } from "./skills";
 
 const chillingPlaceEmpireId = 1605n;
 
@@ -71,7 +71,7 @@ export const routes = [
               timePlayed: playerState?.timePlayed ?? 0,
               stats: Object.fromEntries(
                 userSkills.map((userSkill) => {
-                  const skillData = getSkill(userSkill.skillId);
+                  const skillData = getSkillById(userSkill.skillId);
                   return [
                     skillData.name,
                     {

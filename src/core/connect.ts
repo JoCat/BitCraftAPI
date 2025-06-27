@@ -1,14 +1,14 @@
 import { getActualMainServer } from "./getActualMainServer";
 import { DbConnection, ErrorContext } from "../../bindings";
 
-let { uri, name } = await getActualMainServer();
+const { uri } = await getActualMainServer();
 
 const token = process.env.TOKEN;
 if (!token) {
   throw new Error("No token");
 }
 
-export function connect(moduleName = name) {
+export function connect(moduleName: string) {
   return new Promise<DbConnection>((resolve) => {
     return DbConnection.builder()
       .withUri(uri.replace("http", "ws"))

@@ -1,11 +1,41 @@
 import { RouteOptions } from "fastify";
-import { connectionGlobal } from "../connections";
+import { redisClient } from "../core/redis";
+import { getConnection } from "../connections";
 
-connectionGlobal
-  .subscriptionBuilder()
-  .onError(() => console.error("Skills subscription error"))
-  .onApplied(() => console.log("Skills subscribed"))
-  .subscribe(["SELECT * FROM skill_desc"]);
+const SKILLS_CACHE_KEY = "BITCRAFT:SKILLS";
+
+export async function fetchSkills() {
+  const cachedSkills = await redisClient.HGETALL(SKILLS_CACHE_KEY);
+
+  const skillsList = Object.values(cachedSkills);
+  if (skillsList.length > 0) {
+    console.log("Using cached skills");
+    skillsList.forEach((item) => skills.push(JSON.parse(item)));
+    return;
+  }
+
+  const connectionGlobal = await getConnection();
+
+  connectionGlobal
+    .subscriptionBuilder()
+    .onError(() => console.error("Skills subscription error"))
+    .onApplied(() => console.log("Skills subscribed"))
+    .subscribe(["SELECT * FROM skill_desc"]);
+
+  connectionGlobal.db.skillDesc.onInsert((_, skill) => {
+    const formatedSkill = {
+      id: skill.id,
+      name: skill.name,
+      title: skill.title,
+      type: skill.skillCategory.tag,
+      maxLevel: skill.maxLevel,
+    };
+
+    skills.push(formatedSkill);
+    redisClient.HSET(SKILLS_CACHE_KEY, skill.id, JSON.stringify(formatedSkill));
+  });
+}
+fetchSkills();
 
 interface Skill {
   id: number;
@@ -15,24 +45,11 @@ interface Skill {
   maxLevel: number;
 }
 
-const skills: Record<number, Skill> = {};
+const skills: Skill[] = [];
 
-export function getSkills() {
-  return skills;
-}
 export function getSkill(id: number) {
-  return skills[id];
+  return skills.find((skill) => skill.id === id);
 }
-
-connectionGlobal.db.skillDesc.onInsert((_, skill) => {
-  skills[skill.id] = {
-    id: skill.id,
-    name: skill.name,
-    title: skill.title,
-    type: skill.skillCategory.tag,
-    maxLevel: skill.maxLevel,
-  };
-});
 
 export const routes: RouteOptions[] = [
   {
@@ -61,8 +78,6 @@ export const routes: RouteOptions[] = [
         },
       },
     },
-    handler: () => {
-      return { data: Object.values(skills) };
-    },
+    handler: () => ({ data: skills }),
   },
 ];

@@ -17,9 +17,7 @@ export async function getActualMainServer(): Promise<ConnectInfo> {
 
   const connectInfo = await fetchActualMainServer();
 
-  await redisClient.set(MAIN_SERVER_CACHE_KEY, JSON.stringify(connectInfo), {
-    expiration: { type: "EX", value: 60 * 60 },
-  });
+  await redisClient.set(MAIN_SERVER_CACHE_KEY, JSON.stringify(connectInfo));
 
   return connectInfo;
 }

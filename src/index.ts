@@ -19,7 +19,7 @@ await fastify.register(import("@scalar/fastify-api-reference"), {
   routePrefix: "/",
 });
 
-// skillsRoutes.forEach((route) => fastify.route(route));
+skillsRoutes.forEach((route) => fastify.route(route));
 itemsRoutes.forEach((route) => fastify.route(route));
 
 try {

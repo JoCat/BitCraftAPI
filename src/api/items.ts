@@ -1,5 +1,5 @@
 import { RouteOptions } from "fastify";
-import { connectionGlobal } from "../connections";
+import { getConnection } from "../connections";
 import { redisClient } from "../core/redis";
 
 const ITEMS_CACHE_KEY = "BITCRAFT:ITEMS";
@@ -13,6 +13,8 @@ export async function fetchItems() {
     itemsList.forEach((item) => items.push(JSON.parse(item)));
     return;
   }
+
+  const connectionGlobal = await getConnection();
 
   connectionGlobal
     .subscriptionBuilder()
