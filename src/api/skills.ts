@@ -47,7 +47,7 @@ interface Skill {
 
 const skills: Skill[] = [];
 
-export function getSkill(id: number) {
+export function getSkillById(id: number) {
   return skills.find((skill) => skill.id === id);
 }
 

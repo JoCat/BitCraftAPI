@@ -1,8 +1,9 @@
 import Fastify from "fastify";
-import { routes as skillsRoutes } from "./api/skills";
 import { routes as itemsRoutes } from "./api/items";
+import { routes as skillsRoutes } from "./api/skills";
+import { routes as usersRoutes } from "./api/users";
 
-const fastify = Fastify();
+const fastify = Fastify({ logger: { level: "error" } });
 
 await fastify.register(import("@fastify/swagger"), {
   openapi: {
@@ -19,8 +20,9 @@ await fastify.register(import("@scalar/fastify-api-reference"), {
   routePrefix: "/",
 });
 
-skillsRoutes.forEach((route) => fastify.route(route));
 itemsRoutes.forEach((route) => fastify.route(route));
+skillsRoutes.forEach((route) => fastify.route(route));
+usersRoutes.forEach((route) => fastify.route(route));
 
 try {
   await fastify.listen({ port: 3000 });

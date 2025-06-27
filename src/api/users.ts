@@ -1,7 +1,11 @@
-import { connectionGlobal, connectionRegion7 } from "../connections";
+import { getConnection } from "../connections";
 import { getSkillById } from "./skills";
 
 const chillingPlaceEmpireId = 1605n;
+
+// Oh shit...
+const connectionGlobal = await getConnection();
+const connectionRegion7 = await getConnection("bitcraft-7");
 
 connectionGlobal
   .subscriptionBuilder()
@@ -41,9 +45,15 @@ export const routes = [
                   userId: { type: "string" },
                   username: { type: "string" },
                   timePlayed: { type: "number" },
-                  stats: {
+                  skills: {
                     type: "object",
-                    properties: {},
+                    additionalProperties: {
+                      type: "object",
+                      properties: {
+                        quantity: { type: "number" },
+                        level: { type: "number" },
+                      },
+                    },
                   },
                 },
               },
@@ -58,29 +68,35 @@ export const routes = [
         users: [...connectionGlobal.db.empirePlayerDataState.iter()].map(
           (user) => {
             const userSkills =
-              connectionRegion7.db.experienceState.entityId.find(user.entityId)
-                ?.experienceStacks ?? [];
+              connectionRegion7.db.experienceState.entityId.find(
+                user.entityId
+              )?.experienceStacks;
+
+            let skills: Record<string, { quantity: number; level: number }> =
+              {};
+            if (userSkills) {
+              userSkills.forEach((userSkill) => {
+                const skillData = getSkillById(userSkill.skillId);
+                if (!skillData || skillData.name === "ANY") return;
+
+                skills[skillData.name] = {
+                  quantity: userSkill.quantity,
+                  level: levelFromExp(userSkill.quantity),
+                };
+              });
+            }
+
             const playerState = connectionRegion7.db.playerState.entityId.find(
               user.entityId
             );
+
             return {
               userId: user.entityId.toString(),
               username: connectionGlobal.db.playerUsernameState.entityId.find(
                 user.entityId
               )?.username,
               timePlayed: playerState?.timePlayed ?? 0,
-              stats: Object.fromEntries(
-                userSkills.map((userSkill) => {
-                  const skillData = getSkillById(userSkill.skillId);
-                  return [
-                    skillData.name,
-                    {
-                      quantity: userSkill.quantity,
-                      level: levelFromExp(userSkill.quantity),
-                    },
-                  ];
-                })
-              ),
+              skills,
             };
           }
         ),
