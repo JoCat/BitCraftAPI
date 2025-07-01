@@ -5,6 +5,8 @@ import { routes as usersRoutes } from "./api/users";
 
 const fastify = Fastify({ logger: { level: "error" } });
 
+await fastify.register(import("@fastify/cors"));
+
 await fastify.register(import("@fastify/swagger"), {
   openapi: {
     openapi: "3.0.0",
