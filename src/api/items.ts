@@ -28,8 +28,6 @@ export async function fetchItems() {
       name: item.name,
       description: item.description,
       volume: item.volume,
-      durability: item.durability,
-      convertToOnDurabilityZero: item.convertToOnDurabilityZero,
       secondaryKnowledgeId: item.secondaryKnowledgeId,
       tier: item.tier,
       tag: item.tag,
@@ -49,8 +47,6 @@ interface Item {
   name: string;
   description: string;
   volume: number;
-  durability: number;
-  convertToOnDurabilityZero: number;
   secondaryKnowledgeId: number;
   tier: number;
   tag: string;
@@ -81,8 +77,6 @@ export const routes: RouteOptions[] = [
                   name: { type: "string" },
                   description: { type: "string" },
                   volume: { type: "number" },
-                  durability: { type: "number" },
-                  convertToOnDurabilityZero: { type: "number" },
                   secondaryKnowledgeId: { type: "number" },
                   tier: { type: "number" },
                   tag: { type: "string" },

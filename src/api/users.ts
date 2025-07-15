@@ -3,7 +3,6 @@ import { getSkillById } from "./skills";
 
 const chillingPlaceEmpireId = 1605n;
 
-// Oh shit...
 const connectionGlobal = await getConnection();
 const connectionRegion7 = await getConnection("bitcraft-7");
 

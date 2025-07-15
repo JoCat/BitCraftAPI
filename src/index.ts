@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import { routes as itemsRoutes } from "./api/items";
 import { routes as skillsRoutes } from "./api/skills";
 import { routes as usersRoutes } from "./api/users";
+import { routes as cargoesRoutes } from "./api/cargoes";
 
 const fastify = Fastify({ logger: { level: "error" } });
 
@@ -24,6 +25,7 @@ await fastify.register(import("@scalar/fastify-api-reference"), {
 
 itemsRoutes.forEach((route) => fastify.route(route));
 skillsRoutes.forEach((route) => fastify.route(route));
+cargoesRoutes.forEach((route) => fastify.route(route));
 usersRoutes.forEach((route) => fastify.route(route));
 
 try {
