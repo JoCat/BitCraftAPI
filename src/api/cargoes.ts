@@ -80,7 +80,7 @@ export const routes: RouteOptions[] = [
             count: { type: "number" },
             data: {
               type: "array",
-              cargoes: {
+              items: {
                 type: "object",
                 properties: {
                   id: { type: "number" },
